@@ -32,8 +32,11 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          # Optional: only set this secret if your target URL is an internal
-          # API that needs specific headers/cookies (JSON object).
+          # Optional: route through an India egress so BookMyShow doesn't 403
+          # the US-based GitHub runner. Set ONE of these as a repo secret.
+          SCRAPERAPI_KEY: ${{ secrets.SCRAPERAPI_KEY }}
+          PROXY_URL: ${{ secrets.PROXY_URL }}
+          # Optional: extra request headers/cookies as a JSON object.
           HEADERS_JSON: ${{ secrets.HEADERS_JSON }}
         run: python poller.py
 

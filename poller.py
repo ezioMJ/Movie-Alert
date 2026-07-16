@@ -19,6 +19,7 @@ import os
 import re
 import sys
 import time
+import urllib.parse
 from collections import Counter
 from pathlib import Path
 
@@ -28,14 +29,25 @@ ROOT = Path(__file__).resolve().parent
 CONFIG_PATH = Path(os.environ.get("CONFIG_PATH", ROOT / "config.json"))
 STATE_PATH = Path(os.environ.get("STATE_PATH", ROOT / "state.json"))
 
-# Look like a real browser -- these endpoints reject obvious bots.
+# Look like a real Chrome on Windows -- BMS rejects obvious bots.
 DEFAULT_HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
     ),
-    "Accept": "*/*",
-    "Accept-Language": "en-US,en;q=0.9",
+    "Accept": (
+        "text/html,application/xhtml+xml,application/xml;q=0.9,"
+        "image/avif,image/webp,*/*;q=0.8"
+    ),
+    "Accept-Language": "en-IN,en-US;q=0.9,en;q=0.8",
+    "Upgrade-Insecure-Requests": "1",
+    "sec-ch-ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": '"Windows"',
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "same-origin",
+    "Sec-Fetch-User": "?1",
 }
 
 
@@ -91,9 +103,50 @@ def send_telegram(token, chat_id, text):
 
 
 def fetch(cfg):
+    """
+    Fetch the target URL from an India egress when configured.
+
+    BookMyShow blocks non-India / datacenter IPs (e.g. GitHub's US runners),
+    so a plain request from CI gets a 403. Two ways to route through India:
+
+    * SCRAPERAPI_KEY  -- routes via ScraperAPI with country_code=in and solves
+                         anti-bot. Easiest for CI. Set it as a repo secret.
+    * PROXY_URL       -- a standard http(s) proxy string, e.g.
+                         "http://user:pass@in-proxy-host:port".
+
+    With neither set, it makes a direct request with browser headers plus a
+    cookie warm-up -- enough only when running from an India IP.
+    """
     headers = dict(DEFAULT_HEADERS)
     headers.update(cfg.get("headers", {}))
-    resp = requests.get(cfg["target_url"], headers=headers, timeout=30)
+
+    scraper_key = os.environ.get("SCRAPERAPI_KEY")
+    if scraper_key:
+        api_url = "https://api.scraperapi.com/?" + urllib.parse.urlencode(
+            {"api_key": scraper_key, "country_code": "in", "url": cfg["target_url"]}
+        )
+        resp = requests.get(api_url, timeout=90)
+        resp.raise_for_status()
+        return resp.text
+
+    proxy = os.environ.get("PROXY_URL")
+    proxies = {"http": proxy, "https": proxy} if proxy else None
+
+    session = requests.Session()
+    session.headers.update(headers)
+
+    # Warm-up: hit the homepage first to pick up cookies (helps soft bot checks).
+    try:
+        session.get("https://in.bookmyshow.com/", timeout=30, proxies=proxies)
+    except requests.RequestException:
+        pass
+
+    resp = session.get(
+        cfg["target_url"],
+        timeout=30,
+        proxies=proxies,
+        headers={"Referer": "https://in.bookmyshow.com/explore/movies-chennai"},
+    )
     resp.raise_for_status()
     return resp.text
 
