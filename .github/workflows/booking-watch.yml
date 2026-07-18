@@ -33,15 +33,10 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          # Override the watched date without editing code. Set as a repo
-          # Variable (visible in logs) or Secret. e.g. 20260717 to test.
-          REQUESTED_DATE: ${{ vars.REQUESTED_DATE || secrets.REQUESTED_DATE }}
-          # Optional: route through an India egress so BookMyShow doesn't 403
-          # the US-based GitHub runner. Set ONE of these as a repo secret.
+          # Route through an India egress so BookMyShow doesn't 403 the
+          # US-based GitHub runner. Set SCRAPERAPI_KEY (or PROXY_URL) as a secret.
           SCRAPERAPI_KEY: ${{ secrets.SCRAPERAPI_KEY }}
           PROXY_URL: ${{ secrets.PROXY_URL }}
-          # Optional: extra request headers/cookies as a JSON object.
-          HEADERS_JSON: ${{ secrets.HEADERS_JSON }}
         run: python poller.py
 
       - name: Persist state
