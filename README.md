@@ -116,6 +116,80 @@ When booking opens you get one Telegram message. State is saved in `state.json`
 - **False positives/negatives:** tune `open_signals` / `closed_signals` in
   `config.json`.
 
+## Use it for your own movie / theatre (fork)
+
+Anyone can run their own watcher — no need to touch this copy. Each fork has its
+own secrets and its own Telegram chat, fully independent.
+
+1. **Fork** this repo (top-right **Fork** button) into your own account.
+2. **Enable Actions on the fork.** Forks have Actions disabled by default — open
+   the **Actions** tab and click **"I understand my workflows, enable them."**
+   Scheduled runs only fire from your fork's **default branch** (`main`).
+3. **Add your own secrets** — *Settings → Secrets and variables → Actions*:
+   - `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` (your bot — see step 1 above)
+   - `SCRAPERAPI_KEY` (needed so the US-based runner can reach BookMyShow via an
+     India IP — see the geo-block note below)
+4. **Edit `config.json`** for your movie/date/theatre (see the config reference
+   below), then **reset `state.json`** to `{"available": false}`.
+5. Push, and trigger one manual run to confirm it prints `available=False`.
+
+> No branches needed. "Date-only" vs "theatre-specific" is just the `detector`
+> field in `config.json`, not different code — so a fork + config edit covers
+> every use case. If you want to watch several targets at once, ask about the
+> config-matrix setup instead of forking multiple times.
+
+## Config reference — the three detectors
+
+`config.json` picks a `detector`. All three build the page URL from
+`url_template` + `requested_date` (the BMS date lives in the URL).
+
+**`venue_date`** — alert when a *specific theatre* opens for a *specific date*.
+The most precise mode. Uses the per-venue booking link `/<venueCode>/<date>`.
+```json
+{
+  "detector": "venue_date",
+  "movie": "The Odyssey (IMAX 2D)",
+  "requested_date": "20260722",
+  "venue_code": "INPR",
+  "venue_label": "INOX: LUXE Phoenix Market City, Velachery",
+  "url_template": "https://in.bookmyshow.com/movies/chennai/the-odyssey/buytickets/ET00480917/{date}"
+}
+```
+Watch several theatres with `"venue_codes": ["PVPZ","INPR"]` (opens = any of them).
+
+**`bms_date`** — alert when a date opens at *any* theatre. Uses date-dominance
+(the requested date becomes the most-referenced date on the page).
+```json
+{ "detector": "bms_date", "requested_date": "20260722",
+  "url_template": ".../buytickets/ET00480917/{date}", "min_references": 10 }
+```
+
+**`generic`** (default) — for non-date pages / other sites. Matches a `theatre`
+string plus an open signal (`book tickets`, `showtime`) and no closed signal
+(`notify me`, `coming soon`). Set `target_url` directly.
+
+### How to find the values
+
+- **`ET…` code + city + slug** — open the movie's "Book tickets" page on BMS and
+  read them straight from the URL: `.../movies/<city>/<slug>/buytickets/<ETcode>/<date>`.
+- **`requested_date`** — the date in `YYYYMMDD`, e.g. `20260722`.
+- **`venue_code`** — fetch a date where the venue *is* open and look at its
+  cinema link: `.../cinemas/<city>/<venue-slug>/buytickets/<CODE>/<date>` — the
+  `<CODE>` (e.g. `PVPZ`, `INPR`) is the value. The bonus `curl … | grep -oE`
+  command earlier prints the dates; grep the page for your theatre name to find
+  its code.
+
+
+
+## BookMyShow geo-block (why `SCRAPERAPI_KEY`)
+
+BMS only serves India and blocks datacenter IPs. GitHub's runners are US-based,
+so a direct request returns **403 Forbidden**. The poller routes through an
+India IP when `SCRAPERAPI_KEY` is set (free tier from scraperapi.com), which
+fixes it. Alternatives: set `PROXY_URL` to an India proxy, or run a self-hosted
+runner on a machine physically in India. Running locally from India needs
+neither. This is IP/geo-based — browser headers alone won't get past it.
+
 ## Files
 
 | File | Purpose |
