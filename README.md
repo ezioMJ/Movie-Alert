@@ -1,4 +1,4 @@
-# booking-watch
+# Movie-Alert
 
 Get a **Telegram** ping the moment a specific **movie + theatre + date** opens
 for booking on BookMyShow. Runs on **GitHub Actions**, triggered every ~10 min
