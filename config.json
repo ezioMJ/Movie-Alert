@@ -2,8 +2,8 @@
   "detector": "venue_date",
   "movie": "Spider-Man: Brand New Day",
   "requested_date": "20260730",
-  "venue_code": "INTO",
-  "venue_label": "INOX: The Marina Mall, OMR",
-  "url_template": "https://in.bookmyshow.com/movies/chennai/spiderman-brand-new-day/buytickets/ET00502600/{date}",
+  "venue_code": "ALUC",
+  "venue_label": "ALLU Cinemas: Kokapet",
+  "url_template": "https://in.bookmyshow.com/movies/hyderabad/spider-man-brand-new-day/buytickets/ET00447840/{date}",
   "min_references": 10
 }
