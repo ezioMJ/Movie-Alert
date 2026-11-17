@@ -1,14 +1,14 @@
 name: booking-watch
 
 on:
-  workflow_dispatch:
-    inputs:
-      telegram_test:
-        description: "Send a Telegram test message"
-        required: false
-        type: boolean
-        default: false
+  # schedule:
+  #   # Every ~10 min, offset off :00/:10 etc. GitHub delays/drops scheduled
+  #   # runs during high load (worst at the top of the hour), so the odd minutes
+  #   # get served more reliably. Runs are still best-effort, not guaranteed.
+  #   - cron: "4,14,24,34,44,54 * * * *"
+  workflow_dispatch: {}   # lets you trigger a manual run from the Actions tab
 
+# Allow the workflow to commit the updated state file back to the repo.
 permissions:
   contents: write
 
@@ -29,30 +29,17 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Test Telegram notification
-        if: ${{ inputs.telegram_test }}
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: |
-          response=$(curl -sS -X POST \
-            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-            -d "chat_id=${TELEGRAM_CHAT_ID}" \
-            --data-urlencode "text=Telegram test successful!")
-          echo "$response"
-          echo "$response" | grep -q '"ok":true'
-
       - name: Run poller
-        if: ${{ !inputs.telegram_test }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # Route through an India egress so BookMyShow doesn't 403 the
+          # US-based GitHub runner. Set SCRAPERAPI_KEY (or PROXY_URL) as a secret.
           SCRAPERAPI_KEY: ${{ secrets.SCRAPERAPI_KEY }}
           PROXY_URL: ${{ secrets.PROXY_URL }}
         run: python poller.py
 
       - name: Persist state
-        if: ${{ !inputs.telegram_test }}
         run: |
           if [[ -n "$(git status --porcelain state.json)" ]]; then
             git config user.name "booking-watch-bot"
