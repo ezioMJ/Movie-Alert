@@ -1,9 +1,9 @@
 {
   "detector": "venue_date",
-  "movie": "Spider-Man: Brand New Day",
-  "requested_date": "20260730",
-  "venue_code": "INTO",
-  "venue_label": "INOX: The Marina Mall, OMR",
-  "url_template": "https://in.bookmyshow.com/movies/chennai/spiderman-brand-new-day/buytickets/ET00502600/{date}",
+  "movie": "Avengers: Doomsday",
+  "requested_date": "20261217",
+  "venue_code": "RAKK",
+  "venue_label": "Rakki Cinemas: OMR, Kelambakkam",
+  "url_template": "https://in.bookmyshow.com/movies/chennai/avengers-doomsday/buytickets/ET00526287/{date}",
   "min_references": 10
 }
