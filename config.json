@@ -1,8 +1,8 @@
 {
   "detector": "venue_date",
-  "movie": "Avengers: Doomsday",
-  "requested_date": "20261217",
+  "movie": "John Doe",
+  "requested_date": "20261118",
   "venue_code": "PVPZ",
   "venue_label": "PVR: Palazzo, The Nexus Vijaya Mall",
-  "url_template": "https://in.bookmyshow.com/movies/chennai/avengers-doomsday/buytickets/ET00439706/{date}"
+  "url_template": "https://in.bookmyshow.com/movies/chennai/john-doe/buytickets/ET00525702/{date}"
 }
