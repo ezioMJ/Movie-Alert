@@ -6,6 +6,7 @@ on:
   #   # runs during high load (worst at the top of the hour), so the odd minutes
   #   # get served more reliably. Runs are still best-effort, not guaranteed.
   #   - cron: "4,14,24,34,44,54 * * * *"
+on:
   workflow_dispatch:
   inputs:
     telegram_test:
