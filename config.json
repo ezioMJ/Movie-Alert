@@ -1,8 +1,8 @@
 {
   "detector": "venue_date",
-  "movie": "John Doe",
-  "requested_date": "20261119",
+  "movie": "Avengers: Doomsday",
+  "requested_date": "20261217",
   "venue_code": "PVSR",
   "venue_label": "PVR: Sathyam, Royapettah",
-  "url_template": "https://in.bookmyshow.com/movies/chennai/john-doe-chennai/buytickets/ET00525702/{date}"
+  "url_template": "https://in.bookmyshow.com/movies/chennai/avengers-doomsday/buytickets/ET00526306/{date}"
 }
